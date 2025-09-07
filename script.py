@@ -1,54 +1,47 @@
-<?php
-// Baca URL stream dari file
-$source = trim(@file_get_contents("latest.txt"));
-if (!$source || strpos($source, "#ERROR") !== false) {
-    header("HTTP/1.1 503 Service Unavailable");
-    echo "Stream tidak tersedia.";
-    exit;
-}
+from seleniumwire import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+from datetime import datetime
+import time
 
-// Ambil parameter segmen atau manifest
-$path = isset($_GET['path']) ? $_GET['path'] : '';
-$target = $source;
+# Konfigurasi Chrome
+options = Options()
+options.add_argument("--disable-gpu")
+options.add_argument("--no-sandbox")
+options.add_argument("--headless")  # Hapus ini kalau mau lihat browser
+options.add_argument("--window-size=1920,1080")
 
-// Jika segmen, ubah URL dasar
-if ($path && preg_match('/\.m4s$|\.mp4$/', $path)) {
-    $base = preg_replace('/manifest\.mpd.*/', '', $source);
-    $target = $base . $path;
-} elseif ($path && preg_match('/\.mpd$/', $path)) {
-    $target = $source;
-}
+# Inisialisasi driver
+driver = webdriver.Chrome(
+    service=Service(ChromeDriverManager().install()),
+    options=options
+)
 
-// Ambil konten dari sumber
-$opts = [
-    "http" => [
-        "method" => "GET",
-        "header" => "User-Agent: Mozilla/5.0\r\n"
-    ]
-];
-$context = stream_context_create($opts);
-$content = @file_get_contents($target, false, $context);
+# Buka halaman Vidio Indosiar
+driver.get("https://www.vidio.com/live/205-indosiar")
 
-if (!$content) {
-    header("HTTP/1.1 502 Bad Gateway");
-    echo "Gagal mengambil stream.";
-    exit;
-}
+# Tunggu agar XHR selesai
+time.sleep(15)
 
-// Jika manifest, rewrite URL segmen
-if (preg_match('/\.mpd$/', $target)) {
-    $domain = $_SERVER['HTTP_HOST'];
-    $proxy_base = "https://$domain/proxy.php?path=";
-    $content = str_replace("https://", $proxy_base);
-}
+# Cari URL .mpd dari semua request
+stream_url = None
+for request in driver.requests:
+    if request.response and ".mpd" in request.url:
+        stream_url = request.url
+        break
 
-// Set header sesuai tipe
-if (preg_match('/\.mpd$/', $target)) {
-    header("Content-Type: application/dash+xml");
-} elseif (preg_match('/\.m4s$/', $target)) {
-    header("Content-Type: video/iso.segment");
-} else {
-    header("Content-Type: application/octet-stream");
-}
+# Tutup browser
+driver.quit()
 
-echo $content;
+# Simpan hasil ke file
+with open("latest.txt", "w") as f:
+    if stream_url:
+        print("✅ Stream ditemukan:", stream_url)
+        f.write(stream_url + "\n")
+    else:
+        print("❌ Tidak ditemukan stream .mpd")
+        f.write("#ERROR: Stream .mpd tidak ditemukan\n")
+
+    # Tambahkan timestamp agar file selalu berubah
+    f.write("Updated at: " + datetime.now().isoformat())

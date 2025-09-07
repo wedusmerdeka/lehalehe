@@ -18,9 +18,11 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install dependencies
-        run: |
-          pip install selenium-wire webdriver-manager
+     - name: Install dependencies
+  run: |
+    pip install blinker==1.7.0
+    pip install selenium-wire webdriver-manager
+
 
       - name: Run script
         run: python script.py

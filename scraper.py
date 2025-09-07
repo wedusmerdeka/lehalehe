@@ -1,48 +1,49 @@
 import shutil
-from selenium import webdriver
+import time
+from seleniumwire import webdriver  # pip install selenium-wire
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
-import time
 
-# Cari binary Chrome/Chromium yang tersedia
+# Cari binary Chrome/Chromium
 binary_path = shutil.which("google-chrome") or shutil.which("chromium-browser")
 if not binary_path:
-    raise FileNotFoundError("Google Chrome atau Chromium tidak ditemukan di sistem.")
+    raise FileNotFoundError("Google Chrome/Chromium tidak ditemukan.")
 
-# Konfigurasi Chrome Options
+# Konfigurasi Chrome
 options = Options()
 options.binary_location = binary_path
-options.add_argument("--headless=new")  # Headless mode (versi baru)
+options.add_argument("--headless=new")
 options.add_argument("--no-sandbox")
 options.add_argument("--disable-dev-shm-usage")
 options.add_argument("--disable-gpu")
 options.add_argument("--window-size=1920,1080")
 
-# Path ke chromedriver
+# Path chromedriver
 chromedriver_path = shutil.which("chromedriver")
 if not chromedriver_path:
-    raise FileNotFoundError("Chromedriver tidak ditemukan di sistem.")
+    raise FileNotFoundError("Chromedriver tidak ditemukan.")
 
-# Setup driver
 service = Service(chromedriver_path)
 driver = webdriver.Chrome(service=service, options=options)
 
 try:
-    # Contoh: buka halaman target
-    url = "https://example.com"
-    driver.get(url)
+    # Ganti dengan URL halaman player Vidio yang memuat stream 205
+    page_url = "https://www.vidio.com/live/205"  
+    driver.get(page_url)
 
-    # Tunggu sebentar untuk load
-    time.sleep(2)
+    # Tunggu beberapa detik agar semua request termuat
+    time.sleep(8)
 
-    # Contoh ambil judul halaman
-    print("Page title:", driver.title)
+    mpd_url = None
+    for request in driver.requests:
+        if request.response and ".mpd" in request.url and "hdntl=" in request.url:
+            mpd_url = request.url
+            break
 
-    # Contoh ambil elemen
-    h1_elements = driver.find_elements(By.TAG_NAME, "h1")
-    for idx, h1 in enumerate(h1_elements, start=1):
-        print(f"H1-{idx}:", h1.text)
+    if mpd_url:
+        print("MPD URL ditemukan:", mpd_url)
+    else:
+        print("MPD URL tidak ditemukan.")
 
 finally:
     driver.quit()

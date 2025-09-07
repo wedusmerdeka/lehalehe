@@ -12,13 +12,14 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Install dependencies
+      - name: Install Chromium & Chromedriver
         run: |
           sudo apt-get update
           sudo apt-get install -y chromium-browser chromium-chromedriver
-          # Buat symlink supaya Selenium bisa nemu google-chrome
-          sudo ln -sf /usr/bin/chromium-browser /usr/bin/google-chrome
-          sudo ln -sf /usr/lib/chromium-browser/chromedriver /usr/bin/chromedriver
+          # Buat symlink google-chrome kalau belum ada
+          if [ ! -f /usr/bin/google-chrome ]; then
+              sudo ln -s /usr/bin/chromium-browser /usr/bin/google-chrome
+          fi
           python3 -m pip install --upgrade pip
           pip install -r requirements.txt
 

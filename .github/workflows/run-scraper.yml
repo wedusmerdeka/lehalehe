@@ -1,8 +1,8 @@
-name: Run Vidio MPD Scraper
+name: Scrape MPD Stream
 
 on:
   schedule:
-    - cron: '*/30 * * * *'  # Setiap 30 menit
+    - cron: '*/30 * * * *'
   workflow_dispatch:
 
 jobs:
@@ -21,9 +21,10 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
+          pip install blinker==1.7.0
           pip install -r requirements.txt
 
-      - name: Install Chrome (stable)
+      - name: Install Chrome
         run: |
           wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
           sudo apt-get update

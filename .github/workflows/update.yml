@@ -25,7 +25,7 @@ jobs:
           export PATH=$PATH:/usr/lib/chromium-browser/
 
       - name: Run scraper
-        run: python get_token.py
+        run: python token.py
 
       - name: Commit token
         run: |

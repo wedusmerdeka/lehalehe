@@ -1,9 +1,10 @@
 from seleniumwire import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
 import time
 import os
+
+CHROMEDRIVER_PATH = "/usr/bin/chromedriver"
 
 options = Options()
 options.add_argument("--headless")
@@ -13,7 +14,7 @@ options.add_argument("--window-size=1920,1080")
 options.add_argument("--disable-dev-shm-usage")
 
 driver = webdriver.Chrome(
-    service=Service(ChromeDriverManager().install()),
+    service=Service(CHROMEDRIVER_PATH),
     options=options
 )
 
@@ -29,9 +30,4 @@ for request in driver.requests:
 driver.quit()
 
 with open("latest.txt", "w") as f:
-    if stream_url:
-        print("✅ Stream ditemukan:", stream_url)
-        f.write(stream_url)
-    else:
-        print("❌ Tidak ditemukan stream .mpd")
-        f.write("#ERROR: Stream .mpd tidak ditemukan")
+    f.write(stream_url if stream_url else "#ERROR: Stream .mpd tidak ditemukan")

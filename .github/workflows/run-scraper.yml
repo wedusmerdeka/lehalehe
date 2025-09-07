@@ -28,8 +28,8 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y wget unzip xvfb libxi6 libnss3 libxss1 libasound2t64
 
-        # Install Chrome v114 (pin version)
-        wget https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_114.0.5735.90-1_amd64.deb
+        # Install Chrome v114 from Slimjet mirror
+        wget https://ftp.slimjet.com/chrome/linux/google-chrome-stable_114.0.5735.90-1_amd64.deb
         sudo apt install -y ./google-chrome-stable_114.0.5735.90-1_amd64.deb
 
         # Install Chromedriver v114

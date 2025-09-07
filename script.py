@@ -8,14 +8,16 @@ from selenium.webdriver.support import expected_conditions as EC
 from datetime import datetime
 import time
 
-# Setup Chrome
+# Konfigurasi Chrome anti-bot
 options = Options()
 options.add_argument("--disable-gpu")
 options.add_argument("--no-sandbox")
 options.add_argument("--window-size=1920,1080")
+options.add_argument("--headless=new")  # Headless baru lebih stabil
+options.add_argument("--disable-blink-features=AutomationControlled")
 options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
-options.add_argument("--headless")
 
+# Inisialisasi driver
 driver = webdriver.Chrome(
     service=Service(ChromeDriverManager().install()),
     options=options
@@ -32,21 +34,23 @@ try:
 except:
     print("⚠️ Player tidak muncul")
 
-time.sleep(10)  # Tambahan delay
+# Tambahan delay agar XHR muncul
+time.sleep(10)
 
-# Log semua request
-all_mpd = []
+# Tangkap semua .mpd
+stream_url = None
 for request in driver.requests:
     if request.response and ".mpd" in request.url:
-        all_mpd.append(request.url)
+        stream_url = request.url
+        break
 
 driver.quit()
 
 # Simpan hasil
 with open("latest.txt", "w") as f:
-    if all_mpd:
-        print("✅ Stream ditemukan:", all_mpd[0])
-        f.write(all_mpd[0] + "\n")
+    if stream_url:
+        print("✅ Stream ditemukan:", stream_url)
+        f.write(stream_url + "\n")
     else:
         print("❌ Tidak ditemukan stream .mpd")
         f.write("#ERROR: Stream .mpd tidak ditemukan\n")

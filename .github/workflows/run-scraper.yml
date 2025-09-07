@@ -1,9 +1,9 @@
-name: Scraping Workflow
+name: Scraper Workflow
 
 on:
-  schedule:
-    - cron: '0 * * * *'  # Setiap jam
   workflow_dispatch:
+  schedule:
+    - cron: '0 */6 * * *'  # Setiap 6 jam
 
 jobs:
   scrape:
@@ -13,50 +13,26 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-
-    - name: Install Chrome v114 & Chromedriver v114 (manual extract)
-      run: |
         sudo apt-get update
-        sudo apt-get install -y wget unzip xvfb libxi6 libnss3 libxss1 libasound2t64
+        sudo apt-get install -y wget unzip xvfb libxi6 libnss3 libxss1 libasound2t64 chromium-browser
 
-        # Download Chrome v114 tarball from Slimjet mirror
-        wget --no-check-certificate https://ftp.slimjet.com/chrome/linux/google-chrome-stable_current_amd64.tar.xz
-        tar -xf google-chrome-stable_current_amd64.tar.xz
+        # Symlink chromium ke google-chrome agar Selenium bisa mengenali
+        sudo ln -s /usr/bin/chromium-browser /usr/bin/google-chrome
 
-        # Move Chrome binary to /usr/bin
-        sudo mv google-chrome/google-chrome /usr/bin/google-chrome
-        sudo chmod +x /usr/bin/google-chrome
-
-        # Install Chromedriver v114
+    - name: Install Chromedriver v114
+      run: |
         CHROMEDRIVER_VERSION=114.0.5735.90
         wget https://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/chromedriver_linux64.zip
         unzip chromedriver_linux64.zip
         sudo mv chromedriver /usr/bin/chromedriver
         sudo chmod +x /usr/bin/chromedriver
 
-        # Verify installation
-        google-chrome --version
+        # Verifikasi versi
+        google-chrome --version || chromium-browser --version
         chromedriver --version
 
     - name: Run scraper
       run: |
-        xvfb-run python scraper.py
-
-    - name: Commit results
-      run: |
-        git config --global user.name "github-actions"
-        git config --global user.email "github-actions@github.com"
-        git add latest.txt
-        git commit -m "Update results [skip ci]" || echo "No changes to commit"
-        git push
-      env:
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        xvfb-run --auto-servernum --server-args='-screen 0 1024x768x24' python3 scraper.py

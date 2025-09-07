@@ -23,14 +23,14 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Install Chrome & Chromedriver (v114 fallback)
+    - name: Install Chrome v114 & Chromedriver v114
       run: |
         sudo apt-get update
         sudo apt-get install -y wget unzip xvfb libxi6 libnss3 libxss1 libasound2t64
 
-        # Install Chrome stable
-        wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-        sudo apt install -y ./google-chrome-stable_current_amd64.deb
+        # Install Chrome v114 (pin version)
+        wget https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_114.0.5735.90-1_amd64.deb
+        sudo apt install -y ./google-chrome-stable_114.0.5735.90-1_amd64.deb
 
         # Install Chromedriver v114
         CHROMEDRIVER_VERSION=114.0.5735.90
@@ -39,7 +39,7 @@ jobs:
         sudo mv chromedriver /usr/bin/chromedriver
         sudo chmod +x /usr/bin/chromedriver
 
-        # Optional: verify installation
+        # Verify installation
         google-chrome --version
         chromedriver --version
 
@@ -51,7 +51,7 @@ jobs:
       run: |
         git config --global user.name "github-actions"
         git config --global user.email "github-actions@github.com"
-        git add .
+        git add latest.txt
         git commit -m "Update results [skip ci]" || echo "No changes to commit"
         git push
       env:

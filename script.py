@@ -17,7 +17,7 @@ service = Service(ChromeDriverManager().install())
 driver = webdriver.Chrome(service=service, options=options)
 
 # Buka halaman MNCTV
-driver.get("https://www.rctiplus.com/tv/mnctv")
+driver.get("https://www.vidio.com/live/205-indosiar")
 time.sleep(10)  # Tunggu player termuat
 
 # Inject JS ke JW Player untuk ambil stream URL

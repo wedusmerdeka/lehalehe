@@ -18,7 +18,7 @@ jobs:
           sudo apt-get install -y chromium-browser chromium-chromedriver
           # Buat symlink google-chrome kalau belum ada
           if [ ! -f /usr/bin/google-chrome ]; then
-              sudo ln -s /usr/bin/chromium-browser /usr/bin/google-chrome
+              sudo ln -s $(which chromium-browser) /usr/bin/google-chrome
           fi
           python3 -m pip install --upgrade pip
           pip install -r requirements.txt

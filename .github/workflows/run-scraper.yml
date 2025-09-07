@@ -3,7 +3,7 @@ name: Run Vidio MPD Scraper
 on:
   schedule:
     - cron: '*/30 * * * *'  # Setiap 30 menit
-  workflow_dispatch:        # Bisa dijalankan manual juga
+  workflow_dispatch:
 
 jobs:
   scrape:
@@ -23,12 +23,11 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Install Chrome
+      - name: Install Chrome (stable)
         run: |
-          sudo apt-get update
-          sudo apt-get install -y wget unzip xvfb libxi6 libgconf-2-4
           wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-          sudo apt install -y ./google-chrome-stable_current_amd64.deb
+          sudo apt-get update
+          sudo apt-get install -y ./google-chrome-stable_current_amd64.deb
 
       - name: Run scraper
         run: |

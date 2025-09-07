@@ -1,16 +1,16 @@
-name: Scrape Stream
+name: Run Python Script Every Hour
 
 on:
   schedule:
-    - cron: '*/30 * * * *'  # Setiap 30 menit
-  workflow_dispatch:
+    - cron: '0 * * * *'  # Setiap jam
+  workflow_dispatch:     # Bisa dijalankan manual juga
 
 jobs:
-  scrape:
+  run-script:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Setup Python
@@ -20,19 +20,15 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install selenium-wire==5.1.0
-          pip install selenium==4.15.2
-          pip install webdriver-manager==4.0.1
-          pip install "setuptools<81"
+          pip install selenium-wire webdriver-manager
 
-      - name: Run scraper
+      - name: Run script
         run: python script.py
 
-      - name: Commit and Push
+      - name: Commit result
         run: |
-          git config user.name "wedus Bot"
-          git config user.email "bot@wedusmerdeka.space"
-          git pull --rebase
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
           git add latest.txt
-          git commit -m "Update stream" || echo "No changes to commit"
+          git commit -m "Update stream URL [auto]"
           git push

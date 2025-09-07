@@ -1,42 +1,54 @@
-from seleniumwire import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
-import time
+<?php
+// Baca URL stream dari file
+$source = trim(@file_get_contents("latest.txt"));
+if (!$source || strpos($source, "#ERROR") !== false) {
+    header("HTTP/1.1 503 Service Unavailable");
+    echo "Stream tidak tersedia.";
+    exit;
+}
 
-# Konfigurasi Chrome
-options = Options()
-options.add_argument("--disable-gpu")
-options.add_argument("--no-sandbox")
-options.add_argument("--headless")  # Bisa dihapus kalau mau lihat browsernya
-options.add_argument("--window-size=1920,1080")
+// Ambil parameter segmen atau manifest
+$path = isset($_GET['path']) ? $_GET['path'] : '';
+$target = $source;
 
-# Inisialisasi driver dengan selenium-wire
-driver = webdriver.Chrome(
-    service=Service(ChromeDriverManager().install()),
-    options=options
-)
+// Jika segmen, ubah URL dasar
+if ($path && preg_match('/\.m4s$|\.mp4$/', $path)) {
+    $base = preg_replace('/manifest\.mpd.*/', '', $source);
+    $target = $base . $path;
+} elseif ($path && preg_match('/\.mpd$/', $path)) {
+    $target = $source;
+}
 
-# Buka halaman Vidio Indosiar
-driver.get("https://www.vidio.com/live/205-indosiar")
-time.sleep(15)  # Tunggu agar XHR selesai
+// Ambil konten dari sumber
+$opts = [
+    "http" => [
+        "method" => "GET",
+        "header" => "User-Agent: Mozilla/5.0\r\n"
+    ]
+];
+$context = stream_context_create($opts);
+$content = @file_get_contents($target, false, $context);
 
-# Cari URL .mpd dari semua request
-stream_url = None
-for request in driver.requests:
-    if request.response:
-        if ".mpd" in request.url and "akamaized.net" in request.url:
-            stream_url = request.urlpip install "setuptools<81"
-            break
+if (!$content) {
+    header("HTTP/1.1 502 Bad Gateway");
+    echo "Gagal mengambil stream.";
+    exit;
+}
 
-# Tutup browser
-driver.quit()
+// Jika manifest, rewrite URL segmen
+if (preg_match('/\.mpd$/', $target)) {
+    $domain = $_SERVER['HTTP_HOST'];
+    $proxy_base = "https://$domain/proxy.php?path=";
+    $content = str_replace("https://", $proxy_base);
+}
 
-# Simpan hasil ke file
-with open("latest.txt", "w") as f:
-    if stream_url:
-        print("✅ Stream ditemukan:", stream_url)
-        f.write(stream_url)
-    else:
-        print("❌ Tidak ditemukan stream .mpd")
-        f.write("#ERROR: Stream .mpd tidak ditemukan")
+// Set header sesuai tipe
+if (preg_match('/\.mpd$/', $target)) {
+    header("Content-Type: application/dash+xml");
+} elseif (preg_match('/\.m4s$/', $target)) {
+    header("Content-Type: video/iso.segment");
+} else {
+    header("Content-Type: application/octet-stream");
+}
+
+echo $content;

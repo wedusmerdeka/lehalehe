@@ -1,40 +1,38 @@
-name: Update Stream
+name: Scrape Stream
 
 on:
   schedule:
-    - cron: '*/1 * * * *'  # Setiap menit
+    - cron: '*/30 * * * *'  # Setiap 30 menit
   workflow_dispatch:
 
 jobs:
-  update:
+  scrape:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v3
 
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: '3.11'
 
       - name: Install dependencies
         run: |
-          pip install setuptools packaging selenium selenium-wire blinker==1.7.0 webdriver-manager
+          pip install selenium-wire==5.1.0
+          pip install selenium==4.15.2
+          pip install webdriver-manager==4.0.1
+          pip install "setuptools<81"
 
-      - name: Run script
+      - name: Run scraper
         run: python script.py
 
-      - name: Ensure latest.txt exists
-        run: |
-          if [ ! -f latest.txt ]; then
-            touch latest.txt
-          fi
-
-      - name: Commit updated stream
+      - name: Commit and Push
         run: |
           git config user.name "wedus Bot"
-          git config user.email "wedus@users.noreply.github.com"
+          git config user.email "bot@wedusmerdeka.space"
+          git pull --rebase
           git add latest.txt
-          git commit -m "Update stream"
+          git commit -m "Update stream" || echo "No changes to commit"
           git push

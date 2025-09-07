@@ -2,8 +2,8 @@ name: Run Python Script Every Hour
 
 on:
   schedule:
-    - cron: '0 * * * *'  # Setiap jam
-  workflow_dispatch:     # Bisa dijalankan manual juga
+    - cron: '0 * * * *'  # Setiap jam (UTC)
+  workflow_dispatch:     # Bisa dijalankan manual juga dari tab Actions
 
 jobs:
   run-script:
@@ -18,11 +18,10 @@ jobs:
         with:
           python-version: '3.11'
 
-     - name: Install dependencies
-  run: |
-    pip install blinker==1.7.0
-    pip install selenium-wire webdriver-manager
-
+      - name: Install dependencies
+        run: |
+          pip install blinker==1.7.0
+          pip install selenium-wire webdriver-manager
 
       - name: Run script
         run: python script.py

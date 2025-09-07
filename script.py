@@ -3,44 +3,40 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 import time
-import uuid
 
-# Setup Chrome options
+# Konfigurasi Chrome
 options = Options()
 options.add_argument("--disable-gpu")
 options.add_argument("--no-sandbox")
-options.add_argument("--headless=new")  # Aktifkan headless untuk CI
-options.add_argument(f"--user-data-dir=/tmp/chrome-profile-{uuid.uuid4()}")
+options.add_argument("--headless")  # Bisa dihapus kalau mau lihat browsernya
+options.add_argument("--window-size=1920,1080")
 
-# Setup Chrome driver via webdriver-manager
-service = Service(ChromeDriverManager().install())
-driver = webdriver.Chrome(service=service, options=options)
+# Inisialisasi driver dengan selenium-wire
+driver = webdriver.Chrome(
+    service=Service(ChromeDriverManager().install()),
+    options=options
+)
 
-# Buka halaman MNCTV
+# Buka halaman Vidio Indosiar
 driver.get("https://www.vidio.com/live/205-indosiar")
-time.sleep(10)  # Tunggu player termuat
+time.sleep(15)  # Tunggu agar XHR selesai
 
-# Inject JS ke JW Player untuk ambil stream URL
-try:
-    stream_url = driver.execute_script("""
-        try {
-            return jwplayer().getPlaylistItem().file;
-        } catch (e) {
-            return null;
-        }
-    """)
-except Exception as e:
-    print("⚠️ Gagal inject JW API:", e)
-    stream_url = None
+# Cari URL .mpd dari semua request
+stream_url = None
+for request in driver.requests:
+    if request.response:
+        if ".mpd" in request.url and "akamaized.net" in request.url:
+            stream_url = request.urlpip install "setuptools<81"
+            break
 
+# Tutup browser
 driver.quit()
 
-# Simpan hasil ke latest.txt
-if stream_url:
-    print("✅ Stream ditemukan:", stream_url)
-    with open("latest.txt", "w") as f:
+# Simpan hasil ke file
+with open("latest.txt", "w") as f:
+    if stream_url:
+        print("✅ Stream ditemukan:", stream_url)
         f.write(stream_url)
-else:
-    print("❌ Tidak ditemukan stream dari JW Player")
-    with open("latest.txt", "w") as f:
-        f.write("#ERROR: Stream tidak ditemukan")
+    else:
+        print("❌ Tidak ditemukan stream .mpd")
+        f.write("#ERROR: Stream .mpd tidak ditemukan")

@@ -3,7 +3,7 @@ name: Run Python Script Every Hour
 on:
   schedule:
     - cron: '0 * * * *'  # Setiap jam (UTC)
-  workflow_dispatch:     # Bisa dijalankan manual juga dari tab Actions
+  workflow_dispatch:     # Bisa dijalankan manual juga
 
 jobs:
   run-script:

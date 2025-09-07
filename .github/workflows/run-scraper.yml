@@ -1,29 +1,26 @@
-name: Scraper Workflow
+name: Stream Scraper
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 */6 * * *'  # Setiap 6 jam
+    - cron: "0 * * * *"
 
 jobs:
   scrape:
-    runs-on: ubuntu-latest
-
+    runs-on: ubuntu-24.04
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-    - name: Install Chromium (APT) & dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y wget unzip xvfb libxi6 libnss3 libxss1 libasound2t64 chromium-browser chromium-chromedriver
-        sudo ln -sf /usr/bin/chromium-browser /usr/bin/google-chrome
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y chromium-browser chromium-chromedriver
+          # Buat symlink supaya Selenium bisa nemu google-chrome
+          sudo ln -sf /usr/bin/chromium-browser /usr/bin/google-chrome
+          sudo ln -sf /usr/lib/chromium-browser/chromedriver /usr/bin/chromedriver
+          python3 -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-    - name: Install Python dependencies
-      run: |
-        python3 -m pip install --upgrade pip
-        pip install -r requirements.txt
-
-    - name: Run scraper
-      run: |
-        xvfb-run --auto-servernum --server-args='-screen 0 1024x768x24' python3 scraper.py
+      - name: Run scraper
+        run: python3 scraper.py

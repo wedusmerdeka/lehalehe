@@ -1,38 +1,36 @@
-name: Run Python Script Every Hour
+name: Update Token
 
 on:
   schedule:
-    - cron: '0 * * * *'  # Setiap jam (UTC)
-  workflow_dispatch:     # Bisa dijalankan manual juga
+    - cron: "*/30 * * * *"  # Setiap 30 menit
+  workflow_dispatch:
 
 jobs:
-  run-script:
+  update:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v3
 
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Install dependencies
         run: |
-          pip install blinker==1.7.0
-          pip install selenium-wire webdriver-manager
+          pip install selenium selenium-wire
+          sudo apt-get update
+          sudo apt-get install -y chromium-driver
+          export PATH=$PATH:/usr/lib/chromium-browser/
 
-      - name: Run script
-        run: python script.py
+      - name: Run scraper
+        run: python get_token.py
 
-      - name: Push changes to repository
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      - name: Commit token
         run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}
-          git add latest.txt
-          git commit -m "Update stream URL [auto]" || echo "No changes to commit"
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add token.txt
+          git commit -m "Update token"
           git push

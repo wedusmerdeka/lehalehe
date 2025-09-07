@@ -17,8 +17,6 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y wget unzip xvfb libxi6 libnss3 libxss1 libasound2t64 chromium-browser chromium-chromedriver
-
-        # Pastikan google-chrome mengarah ke chromium-browser
         sudo ln -sf /usr/bin/chromium-browser /usr/bin/google-chrome
 
     - name: Force Chromedriver v114 (opsional, jika versi bawaan tidak cocok)
@@ -32,6 +30,11 @@ jobs:
         # Verifikasi
         google-chrome --version
         chromedriver --version
+
+    - name: Install Python dependencies
+      run: |
+        python3 -m pip install --upgrade pip
+        pip install selenium selenium-wire
 
     - name: Run scraper
       run: |

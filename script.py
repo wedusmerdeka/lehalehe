@@ -8,15 +8,14 @@ from selenium.webdriver.support import expected_conditions as EC
 from datetime import datetime
 import time
 
-# Konfigurasi Chrome
+# Setup Chrome
 options = Options()
 options.add_argument("--disable-gpu")
 options.add_argument("--no-sandbox")
 options.add_argument("--window-size=1920,1080")
 options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
-options.add_argument("--headless")  # Hapus ini kalau mau lihat browser
+options.add_argument("--headless")
 
-# Inisialisasi driver
 driver = webdriver.Chrome(
     service=Service(ChromeDriverManager().install()),
     options=options
@@ -31,32 +30,23 @@ try:
         EC.presence_of_element_located((By.CLASS_NAME, "vidio-player"))
     )
 except:
-    print("⚠️ Player tidak muncul dalam 30 detik")
+    print("⚠️ Player tidak muncul")
 
-# Tambahan delay untuk XHR
-time.sleep(10)
+time.sleep(10)  # Tambahan delay
 
-# Log semua request ke file debug
-with open("debug_requests.txt", "w") as log:
-    for request in driver.requests:
-        if request.response:
-            log.write(request.url + "\n")
-
-# Cari URL .mpd
-stream_url = None
+# Log semua request
+all_mpd = []
 for request in driver.requests:
     if request.response and ".mpd" in request.url:
-        stream_url = request.url
-        break
+        all_mpd.append(request.url)
 
-# Tutup browser
 driver.quit()
 
-# Simpan hasil ke latest.txt
+# Simpan hasil
 with open("latest.txt", "w") as f:
-    if stream_url:
-        print("✅ Stream ditemukan:", stream_url)
-        f.write(stream_url + "\n")
+    if all_mpd:
+        print("✅ Stream ditemukan:", all_mpd[0])
+        f.write(all_mpd[0] + "\n")
     else:
         print("❌ Tidak ditemukan stream .mpd")
         f.write("#ERROR: Stream .mpd tidak ditemukan\n")

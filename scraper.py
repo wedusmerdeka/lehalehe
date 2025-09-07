@@ -1,10 +1,8 @@
 from seleniumwire import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 import time
-import os
-
-CHROMEDRIVER_PATH = "/usr/bin/chromedriver"
 
 options = Options()
 options.add_argument("--headless")
@@ -13,8 +11,9 @@ options.add_argument("--no-sandbox")
 options.add_argument("--window-size=1920,1080")
 options.add_argument("--disable-dev-shm-usage")
 
+# Gunakan WebDriver Manager untuk otomatis install versi yang cocok
 driver = webdriver.Chrome(
-    service=Service(CHROMEDRIVER_PATH),
+    service=Service(ChromeDriverManager().install()),
     options=options
 )
 
